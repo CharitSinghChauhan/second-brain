@@ -1,0 +1,58 @@
+########################
+# Dependencies
+########################
+client/node_modules/
+server/node_modules/
+.pnpm-store/
+
+########################
+# Build output
+########################
+client/dist/
+client/build/
+client/.next/
+client/out/
+
+server/dist/
+server/build/
+
+########################
+# Environment variables
+########################
+client/.env
+client/.env.*
+server/.env
+server/.env.*
+
+.env.local
+
+########################
+# Logs
+########################
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+########################
+# Test / Coverage
+########################
+coverage/
+.nyc_output/
+
+########################
+# OS files
+########################
+.DS_Store
+Thumbs.db
+
+########################
+# IDE / Editor
+########################
+.vscode/
+.idea/
+
+########################
+# Misc
+########################
+*.tsbuildinfo
