@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import ApiResponse from "../utils/apiResponse.js";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { generateKeyPair } from "crypto";
+import { email } from "zod";
 
 const generateToken = async (user: IUser) => {
   try {
@@ -26,7 +27,7 @@ const generateToken = async (user: IUser) => {
       500,
       "Token generation failed",
       null,
-      "INTERNAL_SERVER_ERROR",
+      "INTERNAL_SERVER_ERROR"
     );
   }
 };
@@ -40,7 +41,7 @@ export const signUpController = async (req: Request, res: Response) => {
       "validation failed",
       zodResult.data,
       zodResult.error.name,
-      zodResult.error,
+      zodResult.error
     );
   }
 
@@ -65,7 +66,7 @@ export const signUpController = async (req: Request, res: Response) => {
   const { accessToken, refreshToken } = await generateToken(newUser);
 
   const safeUser = await User.findById(newUser._id).select(
-    "-passwordHash -hashedRefreshToken -__v -_id",
+    "-passwordHash -hashedRefreshToken -__v -_id"
   );
 
   const cookieOptions = {
@@ -96,19 +97,20 @@ export const signInController = async (req: Request, res: Response) => {
       zodResult.error.message,
       req.body,
       zodResult.error.name,
-      zodResult.error,
+      zodResult.error
     );
 
-  const identifer = zodResult.data.email
-    ? { email: zodResult.data.email }
-    : { username: zodResult.data.username! };
-
-  const isUserExist = await User.findOne(identifer);
+  const isUserExist = await User.findOne({
+    $or: [
+      { email: zodResult.data.emailOrUsername },
+      { username: zodResult.data.emailOrUsername },
+    ],
+  });
 
   if (!isUserExist) throw new ApiError(409, "user not found", req.body);
 
   const isPasswordCorrect = isUserExist.isPasswordCorrect(
-    zodResult.data.password,
+    zodResult.data.password
   );
 
   if (!isPasswordCorrect) {
@@ -118,7 +120,7 @@ export const signInController = async (req: Request, res: Response) => {
   const { accessToken, refreshToken } = await generateToken(isUserExist);
 
   const safeUser = await User.findById(isUserExist._id).select(
-    "-passwordHash -hashedRefreshToken -__v -_id",
+    "-passwordHash -hashedRefreshToken -__v -_id"
   );
 
   const cookieOptions = {
@@ -145,7 +147,7 @@ export const signOutController = async (req: Request, res: Response) => {
 
   if (!userId) return res.status(401).json(new ApiError(401, "Auth Error"));
 
-  await User.findOneAndUpdate(userId, {
+  await User.findByIdAndUpdate(userId, {
     $unset: { hashedRefreshToken: 1 },
   });
 
@@ -182,7 +184,7 @@ export const refreshTokenController = async (req: Request, res: Response) => {
       {
         refreshToken,
       },
-      "Validation",
+      "Validation"
     );
 
   if (!process.env.REFRESH_TOKEN_SECRET)
@@ -192,24 +194,25 @@ export const refreshTokenController = async (req: Request, res: Response) => {
       {
         refreshToken,
       },
-      "Validation",
+      "Validation"
     );
 
   const { _id } = jwt.verify(
     refreshToken,
-    process.env.REFRESH_TOKEN_SECRET,
+    process.env.REFRESH_TOKEN_SECRET
   ) as JwtPayload;
 
   const isUserExist = await User.findById(_id).select(
-    "-passwordHash -hashedRefreshToken -__v -_id",
+    "-passwordHash -hashedRefreshToken -__v -_id"
   );
 
   if (!isUserExist)
     throw new ApiError(404, "User not found", null, "Validation");
 
-  const { accessToken, refreshToken: newRefreshToken } =
-    await generateToken(isUserExist);
-  
+  const { accessToken, refreshToken: newRefreshToken } = await generateToken(
+    isUserExist
+  );
+
   const cookieOptions = {
     httpOnly: true, // can't access via js document.cookie
     secure: process.env.NODE_ENV === "production", // only send cookie on https

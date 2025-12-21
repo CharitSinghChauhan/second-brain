@@ -23,7 +23,7 @@ const authMiddleware = async (
 
   const isUserExist = await User.findById({
     _id: payload._id,
-  }).select("-passwordHash -hashedRefreshToken -__v -_id");
+  }).select("-passwordHash -hashedRefreshToken -__v");
 
   if (!isUserExist)
     throw new ApiError(401, "User not found", null, "auth middleware");

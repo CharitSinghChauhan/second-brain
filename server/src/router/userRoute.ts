@@ -10,11 +10,11 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router: Router = Router();
 
-router.use("/auth/signup", signUpController);
-router.use("/auth/signin", signInController);
+router.use("/signup", signUpController);
+router.use("/signin", signInController);
 // TODO : necessay to authenticate
-router.use("/auth/signout", authMiddleware, signOutController);
-router.use("/auth/me", authMiddleware, meController)
-router.use("/auth/refreshToken", refreshTokenController)
+router.use("/signout", authMiddleware, signOutController);
+router.use("/me", authMiddleware, meController)
+router.use("/refreshToken", refreshTokenController)
 
 export default router;

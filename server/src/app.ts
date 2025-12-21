@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import cookiePaser from "cookie-parser";
 import errorMiddleware from "./middleware/errorMiddleware.js";
-import userRouter from "./router/userRoute.js";
+import authRouter from "./router/userRoute.js";
 import cors from "cors";
 
 export const app: Express = express();
@@ -15,6 +15,7 @@ app.use(
   }),
 );
 
-app.use("/api/v1/user", userRouter);
+app.use("/api/v1/auth/", authRouter);
+// app.use("/api/v1/content/", )
 
 app.use(errorMiddleware);

@@ -1,0 +1,151 @@
+"use client";
+
+import { signUpSchema } from "@/zod/zod-types";
+import { Controller, useForm } from "react-hook-form";
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { api } from "@/axios/axios";
+import { toast } from "sonner";
+import { useAuthStore } from "@/store/store";
+import { useRouter } from "next/navigation";
+
+export function SignupForm() {
+  const form = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const { setUser } = useAuthStore();
+  const router = useRouter();
+
+  async function onSubmit(values: z.input<typeof signUpSchema>) {
+    try {
+      const response = (await api.post("/auth/signup", values)).data;
+
+      console.log("response signUp", response);
+
+      if (!response.success) throw new Error("failed");
+
+      if (response.payload) {
+        toast.success("Sign Up successfull");
+        setUser({
+          email: response.payload.email,
+          username: response.payload.username,
+        });
+        router.replace("/");
+      }
+    } catch (error) {
+      // TODO : diff between the error and log
+      console.error(error);
+      toast.error("Sign Up failed");
+    }
+  }
+
+  // TODO : how the inst quey username so fast
+  return (
+    <Card className="w-full sm:max-w-md">
+      <CardContent>
+        <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
+          <FieldGroup>
+            <div className="flex flex-col items-center gap-2 text-center">
+              <h1 className="text-2xl font-bold">Create your account</h1>
+              <p className="text-sm text-muted-foreground">
+                Sign up to start organizing your notes.
+              </p>
+            </div>
+            <Controller
+              name="username"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="username">Username</FieldLabel>
+                  <Input
+                    {...field}
+                    id="username"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter Username"
+                    autoComplete="on"
+                    type="text"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name="email"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <Input
+                    {...field}
+                    id="email"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter Email"
+                    autoComplete="on"
+                    type="email"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name="password"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Input
+                    {...field}
+                    id="password"
+                    aria-invalid={fieldState.invalid}
+                    placeholder="Enter Password"
+                    autoComplete="off"
+                    type="password"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        </form>
+      </CardContent>
+      <CardFooter>
+        <Field
+          orientation="horizontal"
+          className="flex justify-end items-center gap-2"
+        >
+          <Button type="button" variant={`link`}>
+            <Link href="/sign-in">Sign In</Link>
+          </Button>
+          <Button type="button" onClick={() => form.reset()}>
+            Reset
+          </Button>
+          <Button type="submit" form="form-rhf-demo">
+            Submit
+          </Button>
+        </Field>
+      </CardFooter>
+    </Card>
+  );
+}
