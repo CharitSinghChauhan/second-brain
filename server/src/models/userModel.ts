@@ -7,7 +7,7 @@ const userSchema = new Schema<IUser>({
   username: { type: String, required: true, trim: true },
   email: { type: String, required: true, trim: true },
   passwordHash: { type: String, required: true },
-  hashedRefreshToken: { type: String },
+  hashedRefreshToken: { type: String || null },
 });
 
 userSchema.pre("save", async function () {

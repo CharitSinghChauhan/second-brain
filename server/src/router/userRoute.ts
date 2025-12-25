@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-    meController,
+  meController,
   refreshTokenController,
   signInController,
   signOutController,
@@ -14,7 +14,7 @@ router.use("/signup", signUpController);
 router.use("/signin", signInController);
 // TODO : necessay to authenticate
 router.use("/signout", authMiddleware, signOutController);
-router.use("/me", authMiddleware, meController)
-router.use("/refreshToken", refreshTokenController)
+router.use("/me", authMiddleware, meController);
+router.use("/refreshToken", refreshTokenController);
 
 export default router;

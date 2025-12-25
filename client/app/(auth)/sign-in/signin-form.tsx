@@ -36,8 +36,6 @@ export function SignInForm() {
     try {
       const response = (await api.post("/auth/signin", values)).data;
 
-      console.log("response signIn", response);
-
       if (!response.success) throw new Error("failed");
 
       if (response.payload) {

@@ -9,6 +9,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // TODO : why in layout sidebar
     <SidebarProvider>
       <AppSidebar />
       <Toaster position="top-center"/>

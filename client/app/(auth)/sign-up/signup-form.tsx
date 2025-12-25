@@ -36,8 +36,6 @@ export function SignupForm() {
     try {
       const response = (await api.post("/auth/signup", values)).data;
 
-      console.log("response signUp", response);
-
       if (!response.success) throw new Error("failed");
 
       if (response.payload) {

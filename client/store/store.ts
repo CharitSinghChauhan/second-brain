@@ -29,14 +29,3 @@ export const useAuthStore = create<AuthStoreType>()((set) => ({
     })),
 }));
 
-type FormStore = {
-  isOpen: boolean;
-  close: () => void;
-  open : () => void
-};
-
-export const useFormStore = create<FormStore>()((set) => ({
-  isOpen: false,
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-}));

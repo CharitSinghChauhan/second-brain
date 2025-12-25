@@ -2,28 +2,38 @@
 
 import { PlusIcon, ShareNetworkIcon } from "@phosphor-icons/react/dist/ssr";
 import { Button } from "./ui/button";
-import { useFormStore } from "@/store/store";
+import { Dialog, DialogTrigger } from "./ui/dialog";
+import { AddContentDialog } from "./add-content-dialog";
+import ShareBrainDialog from "./share-brain-dialog";
 
 const NavBar = () => {
-  const { open, isOpen } = useFormStore();
-
-  const handleFormOpen = () => {
-    open();
-    console.log('hello')
-  };
-
   return (
-    <div className="flex justify-between items-center px-4">
+    <div className="flex justify-between items-center">
       <header>Notes</header>
       <div className="space-x-4">
-        <Button variant={`link`} className={`border-2 bg-secondary`}>
-          <ShareNetworkIcon />
-          <span>Share Brain</span>
-        </Button>
-        <Button onClick={handleFormOpen}>
-          <PlusIcon />
-          <span>Add Content</span>
-        </Button>
+        {/* Share Brain Dialog  */}
+        <Dialog>
+          <DialogTrigger
+            render={
+              <Button variant="link" className="border-2 bg-secondary">
+                <ShareNetworkIcon />
+                <span>Share Brain</span>
+              </Button>
+            }
+          />
+          <ShareBrainDialog />
+        </Dialog>
+        <Dialog>
+          <DialogTrigger
+            render={
+              <Button>
+                <PlusIcon />
+                <span>Add Content</span>
+              </Button>
+            }
+          />
+          <AddContentDialog />
+        </Dialog>
       </div>
     </div>
   );

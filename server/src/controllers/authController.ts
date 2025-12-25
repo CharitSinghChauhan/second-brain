@@ -6,8 +6,6 @@ import type { IUser } from "../types/usertype.js";
 import bcrypt from "bcryptjs";
 import ApiResponse from "../utils/apiResponse.js";
 import jwt, { type JwtPayload } from "jsonwebtoken";
-import { generateKeyPair } from "crypto";
-import { email } from "zod";
 
 const generateToken = async (user: IUser) => {
   try {
@@ -17,12 +15,10 @@ const generateToken = async (user: IUser) => {
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
 
     user.hashedRefreshToken = hashedRefreshToken;
-    user.save({ validateBeforeSave: false });
+    await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
-    await User.findByIdAndDelete(user._id);
-
     throw new ApiError(
       500,
       "Token generation failed",
@@ -37,7 +33,7 @@ export const signUpController = async (req: Request, res: Response) => {
 
   if (!zodResult.success) {
     throw new ApiError(
-      400,
+      422,
       "validation failed",
       zodResult.data,
       zodResult.error.name,
@@ -77,6 +73,7 @@ export const signUpController = async (req: Request, res: Response) => {
   };
 
   return res
+    .status(201)
     .cookie("accessToken", accessToken, {
       ...cookieOptions,
       maxAge: 15 * 60 * 1000,
@@ -93,7 +90,7 @@ export const signInController = async (req: Request, res: Response) => {
 
   if (!zodResult.success)
     throw new ApiError(
-      400,
+      422,
       zodResult.error.message,
       req.body,
       zodResult.error.name,
@@ -131,6 +128,7 @@ export const signInController = async (req: Request, res: Response) => {
   };
 
   return res
+    .status(201)
     .cookie("accessToken", accessToken, {
       ...cookieOptions,
       maxAge: 15 * 60 * 1000,
@@ -145,7 +143,7 @@ export const signInController = async (req: Request, res: Response) => {
 export const signOutController = async (req: Request, res: Response) => {
   const userId = req.user?._id;
 
-  if (!userId) return res.status(401).json(new ApiError(401, "Auth Error"));
+  if (!userId) return res.json(new ApiError(404, "Auth Error"));
 
   await User.findByIdAndUpdate(userId, {
     $unset: { hashedRefreshToken: 1 },
@@ -189,8 +187,8 @@ export const refreshTokenController = async (req: Request, res: Response) => {
 
   if (!process.env.REFRESH_TOKEN_SECRET)
     throw new ApiError(
-      500,
-      "Internal Server Error",
+      404,
+      "Refresh Token secret missing",
       {
         refreshToken,
       },
@@ -202,12 +200,21 @@ export const refreshTokenController = async (req: Request, res: Response) => {
     process.env.REFRESH_TOKEN_SECRET
   ) as JwtPayload;
 
-  const isUserExist = await User.findById(_id).select(
-    "-passwordHash -hashedRefreshToken -__v -_id"
+  const isUserExist = await User.findById(_id).select("-passwordHash -__v");
+
+  if (!isUserExist || !isUserExist.hashedRefreshToken)
+    throw new ApiError(404, "User not found", null, "Validation");
+
+  const isTokenValid = await bcrypt.compare(
+    refreshToken,
+    isUserExist.hashedRefreshToken
   );
 
-  if (!isUserExist)
-    throw new ApiError(404, "User not found", null, "Validation");
+  if (!isTokenValid) {
+    isUserExist.hashedRefreshToken = null;
+    await isUserExist.save();
+    throw new ApiError(401, "Refresh token reuse detected");
+  }
 
   const { accessToken, refreshToken: newRefreshToken } = await generateToken(
     isUserExist
@@ -221,6 +228,7 @@ export const refreshTokenController = async (req: Request, res: Response) => {
   };
 
   res
+    .status(200)
     .cookie("accessToken", accessToken, {
       ...cookieOptions,
       maxAge: 15 * 60 * 1000,
@@ -229,5 +237,14 @@ export const refreshTokenController = async (req: Request, res: Response) => {
       ...cookieOptions,
       maxAge: 7 * 24 * 3600 * 1000,
     })
-    .json(new ApiResponse(200, isUserExist, "refresh Token sent successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        {
+          email: isUserExist.email,
+          username: isUserExist.username,
+        },
+        "refresh Token sent successfully"
+      )
+    );
 };

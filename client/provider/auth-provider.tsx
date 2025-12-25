@@ -15,8 +15,6 @@ const AuthProvider = () => {
       try {
         const response = (await api.get("/auth/me")).data;
 
-        console.log(response);
-
         if (response.success) {
           setUser({
             email: response.payload.email,

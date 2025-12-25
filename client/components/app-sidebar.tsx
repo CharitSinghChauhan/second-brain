@@ -63,8 +63,6 @@ export function AppSidebar() {
   const { isMobile } = useSidebar();
   const router = useRouter();
 
-  console.log("user", user);
-
   const signOut = async () => {
     await api.get("/auth/signout");
     logout();

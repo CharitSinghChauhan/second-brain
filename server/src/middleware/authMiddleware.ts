@@ -10,7 +10,7 @@ const authMiddleware = async (
 ) => {
   const accessToken = req.cookies.accessToken;
 
-  if (!accessToken) throw new ApiError(401, "Authorization token missing");
+  if (!accessToken) throw new ApiError(400, "Authorization token missing");
 
   if (!process.env.ACCESS_TOKEN_SECRET)
     throw new ApiError(500, "ACCESS_TOKEN_SECRET environment variable missing");
@@ -19,7 +19,7 @@ const authMiddleware = async (
   const payload = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
   if (typeof payload === "string")
-    throw new ApiError(401, "Token invalid", null);
+    throw new ApiError(400, "Token invalid", null);
 
   const isUserExist = await User.findById({
     _id: payload._id,
