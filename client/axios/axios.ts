@@ -21,7 +21,6 @@ api.interceptors.response.use(
     if (error.response?.status === 400 && !originalReq._retry) {
       originalReq._retry = true;
       try {
-        console.log("inside the interceptors refreshToken");
         await api.get("/auth/refreshToken");
         return api(originalReq);
       } catch (error) {

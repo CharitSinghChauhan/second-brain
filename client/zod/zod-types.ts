@@ -37,13 +37,24 @@ export const addContentSchema = z
       .string()
       .max(100, "Description must be at most 100 characters")
       .optional(),
-    link: z.string().url("Invalid URL format").optional(),
+    contentLink: z.string().url("Invalid URL").optional(),
+    tags: z.array(z.string().max(10)).max(5, "Max 5 tags"),
+    type: z.enum([
+      "youtube-video",
+      "article-link",
+      "tweet-link",
+      "document-link",
+      "note",
+      "others"
+    ]),
   })
   .superRefine((data, ctx) => {
-    if (!(data.description || data.link || data.title)) {
+    if (!(data.contentLink && data.description && data.title)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "At least one of title, description, or link is required",
+        message:
+          "At least one of title, description, or contentLink is required",
+        path: ["contentLink"],
       });
     }
   });

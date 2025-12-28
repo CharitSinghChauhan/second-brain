@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
-import { signInSchema, signUpSchema } from "../zod/userZod.js";
+import { signInSchema, signUpSchema } from "../zod/zod-type.js";
 import ApiError from "../utils/apiError.js";
-import { User } from "../models/userModel.js";
-import type { IUser } from "../types/usertype.js";
+import { User } from "../models/user-model.js";
+import type { IUser } from "../types/types.js";
 import bcrypt from "bcryptjs";
 import ApiResponse from "../utils/apiResponse.js";
 import jwt, { type JwtPayload } from "jsonwebtoken";

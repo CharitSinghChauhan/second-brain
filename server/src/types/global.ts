@@ -1,6 +1,6 @@
-import type { IUser } from "./usertype.js";
+import type { IUser } from "./types.js";
 
-// TODO : Read the blog 
+// TODO : Read the blog
 declare global {
   namespace Express {
     interface Request {

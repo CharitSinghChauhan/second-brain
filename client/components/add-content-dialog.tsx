@@ -9,19 +9,68 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Button } from "./ui/button";
 import { DialogContent } from "./ui/dialog";
+import { Dispatch, SetStateAction, useState } from "react";
 
-export function AddContentDialog() {
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { api } from "@/axios/axios";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export function AddContentDialog({
+  isDialogOpen,
+  setIsDialogOpen,
+}: {
+  isDialogOpen: boolean;
+  setIsDialogOpen: Dispatch<SetStateAction<boolean>>;
+}) {
   const form = useForm<z.infer<typeof addContentSchema>>({
     resolver: zodResolver(addContentSchema),
     defaultValues: {
       title: "Untitled",
       description: "",
-      link: "",
+      contentLink: "",
+      tags: [],
+      type: "note",
     },
   });
 
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
   async function onSubmit(values: z.input<typeof addContentSchema>) {
-    console.log(values);
+    setLoading(true);
+    try {
+      const response = (
+        await api.post("/content", {
+          title: values.title,
+          description: values.description,
+          contentLink: values.contentLink,
+          type: values.type,
+          tags: values.tags,
+        })
+      ).data;
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to add content");
+      }
+      toast.success("Add successfully");
+    } catch (error) {
+      console.error(error);
+      toast.error("Error occured");
+    } finally {
+      setLoading(false);
+      form.reset();
+      setIsDialogOpen(false);
+      router.push("/")
+    }
   }
 
   return (
@@ -57,7 +106,7 @@ export function AddContentDialog() {
                 )}
               />
               <Controller
-                name="link"
+                name="contentLink"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
@@ -81,13 +130,77 @@ export function AddContentDialog() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="description">Password</FieldLabel>
+                    <FieldLabel htmlFor="description">Description</FieldLabel>
                     <Textarea
                       {...field}
                       id="description"
                       aria-invalid={fieldState.invalid}
                       placeholder="Enter Description"
                       autoComplete="off"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="type"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel data-invalid={fieldState.invalid}>
+                      Type
+                    </FieldLabel>
+                    <Select {...field}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Type</SelectLabel>
+                          <SelectItem value="youtube-video">
+                            youtube-video
+                          </SelectItem>
+                          <SelectItem value="article-link">
+                            article-link
+                          </SelectItem>
+                          <SelectItem value="tweet-link">tweet-link</SelectItem>
+                          <SelectItem value="document-link">
+                            document-link
+                          </SelectItem>
+                          <SelectItem value="others">others</SelectItem>
+                          <SelectItem value="note">note</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="tags"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel data-invalid={fieldState.invalid}>
+                      Tags
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id="tags"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Enter Tags (comma separated)"
+                      autoComplete="on"
+                      type="text"
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(
+                          value.split(",").map((tag) => tag.trim())
+                        );
+                      }}
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />

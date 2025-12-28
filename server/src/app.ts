@@ -1,13 +1,15 @@
 import express, { type Express } from "express";
-import cookiePaser from "cookie-parser";
-import errorMiddleware from "./middleware/errorMiddleware.js";
-import authRouter from "./router/userRoute.js";
+import cookieParser from "cookie-parser";
+import errorMiddleware from "./middleware/error-middleware.js";
+import authRouter from "./router/auth-route.js";
+import contentRouter from "./router/content-route.js";
+import brainRouter from "./router/brain-route.js";
 import cors from "cors";
 
 export const app: Express = express();
 
 app.use(express.json());
-app.use(cookiePaser());
+app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -16,6 +18,7 @@ app.use(
 );
 
 app.use("/api/v1/auth/", authRouter);
-// app.use("/api/v1/content/", )
+app.use("/api/v1/content/", contentRouter);
+app.use("/api/v1/brain/", brainRouter);
 
 app.use(errorMiddleware);

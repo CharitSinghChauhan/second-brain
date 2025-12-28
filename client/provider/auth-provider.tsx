@@ -23,6 +23,7 @@ const AuthProvider = () => {
         } else {
           logout();
           router.push("/sign-in");
+          toast.error("Authentication failed");
         }
       } catch (error) {
         logout();

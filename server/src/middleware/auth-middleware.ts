@@ -1,4 +1,4 @@
-import { User } from "../models/userModel.js";
+import { User } from "../models/user-model.js";
 import ApiError from "../utils/apiError.js";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import type { NextFunction, Request, Response } from "express";
@@ -23,7 +23,7 @@ const authMiddleware = async (
 
   const isUserExist = await User.findById({
     _id: payload._id,
-  }).select("-passwordHash -hashedRefreshToken -__v");
+  }).select("-passwordHash -__v");
 
   if (!isUserExist)
     throw new ApiError(401, "User not found", null, "auth middleware");

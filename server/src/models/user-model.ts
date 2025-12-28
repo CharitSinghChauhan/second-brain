@@ -1,11 +1,11 @@
 import mongoose, { Model, Schema } from "mongoose";
-import type { IUser } from "../types/usertype.ts";
+import type { IUser } from "../types/types.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const userSchema = new Schema<IUser>({
-  username: { type: String, required: true, trim: true },
-  email: { type: String, required: true, trim: true },
+  username: { type: String, required: true, trim: true, unique: true },
+  email: { type: String, required: true, trim: true, unique: true },
   passwordHash: { type: String, required: true },
   hashedRefreshToken: { type: String || null },
 });
@@ -29,7 +29,7 @@ userSchema.methods.generateAccessToken = function (): string {
     process.env.ACCESS_TOKEN_SECRET,
     {
       expiresIn: "15m",
-    },
+    }
   );
 };
 
@@ -44,12 +44,12 @@ userSchema.methods.generateRefreshToken = function (): string {
     process.env.REFRESH_TOKEN_SECRET,
     {
       expiresIn: "7d",
-    },
+    }
   );
 };
 
 userSchema.methods.isPasswordCorrect = async function (
-  password: string,
+  password: string
 ): Promise<boolean> {
   return await bcrypt.compare(password, this.passwordHash);
 };

@@ -1,4 +1,3 @@
-import { CopyIcon } from "@phosphor-icons/react";
 import { Button } from "./ui/button";
 import {
   DialogClose,
@@ -10,24 +9,53 @@ import {
 } from "./ui/dialog";
 import { Input } from "./ui/input";
 import { CopyButton } from "./animate-ui/components/buttons/copy";
+import { api } from "@/axios/axios";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 const ShareBrainDialog = () => {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const handleShareablebrain = async () => {
+      setLoading(true);
+      try {
+        const response = (await api.get("/brain")).data;
+
+        if(!response.success) {
+          throw new Error("Failed to generate shareable link");
+        }
+
+        if (response.payload.shareableLink) {
+          const shareUrl = `${window.location.origin}/brain/${response.payload.shareableLink}/share`;
+          setUrl(shareUrl);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Error occurred while generating shareable link");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    handleShareablebrain();
+  }, []);
+
   return (
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Share Brain</DialogTitle>
-        <DialogDescription>Share you brain with anyone</DialogDescription>
+        <DialogDescription>Share your brain with anyone</DialogDescription>
       </DialogHeader>
       <div className="flex justify-between items-center gap-2">
         <Input
           id="link"
-          defaultValue="https://ui.shadcn.com/docs/installation"
+          value={url}
           readOnly
+          placeholder={loading ? "Generating link..." : "Shareable link"}
         />
-        <CopyButton
-          content="https://ui.shadcn.com/docs/installation"
-          variant={`default`}
-        />
+        <CopyButton content={url} variant={`default`} />
       </div>
       <DialogFooter className="sm:justify-start">
         <DialogClose render={<Button type="button" variant="secondary" />}>
